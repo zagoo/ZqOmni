@@ -1,0 +1,29 @@
+.claude/
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# AI Chat local image store (created at runtime)
+var/
