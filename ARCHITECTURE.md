@@ -55,6 +55,38 @@ This project is built as a highly cohesive, loosely coupled Single Page Applicat
 - Leverage **VueUse** composables for all reactive window/element handling, debouncing, and v-model bindings.
 - Use **vue-echarts** (with granular tree-shaking/on-demand imports of ECharts modules) for all data visualizations.
 
+### 2.8 Soft-Deleted Business-Key Recreation Rule
+When implementing any create/upsert flow for an entity that supports soft deletion, the code **MUST NOT** reject the request with a simple “already exists” / duplicate-business-key error solely because a soft-deleted row exists with the same business key.
+
+A **business key** means a deterministic domain identifier supplied or derived from business data, not an auto-generated random primary key, UUID, database sequence, or surrogate ID.
+
+If a create request uses a business key that matches an existing soft-deleted row, and making that data effective again can be done without violating data integrity rules, uniqueness rules, or database foreign-key constraints, the implementation **MUST** treat the request as a valid business flow and make the data effective again.
+
+Acceptable implementation strategies include, but are not limited to:
+
+- restoring/reactivating the existing soft-deleted row;
+- clearing soft-delete fields such as `deleted`, `deleted_at`, `deleted_by`, `delete_reason`, or equivalent fields;
+- updating the restored row with the new request data according to normal create/update validation rules;
+- creating a replacement row only when the domain model and database constraints allow it;
+- using a domain-specific recovery/recreation workflow that results in the requested business data becoming active/effective.
+
+The implementation **MUST** follow this decision order:
+
+1. If an active row already exists with the same business key, reject the request as a duplicate, unless the API is explicitly defined as idempotent or upsert-like.
+2. If only soft-deleted row(s) exist with the same business key, do not return a duplicate error by default.
+3. Validate the incoming request exactly as a normal create request would be validated.
+4. Determine whether the soft-deleted data can be restored, replaced, or otherwise made effective without breaking database constraints, foreign-key relationships, audit requirements, or domain invariants.
+5. If it is safe, make the data effective using the domain-appropriate strategy.
+6. If it is not safe, fail with a specific integrity/domain-state error explaining why recreation is not allowed, not with a generic “already exists” error.
+
+Implementations **MUST** query soft-deleted rows when checking business-key uniqueness. A uniqueness check that only looks at active rows is insufficient if the database has unique constraints that still include soft-deleted rows.
+
+Implementations **MUST** handle concurrency safely. The check-and-restore/create operation should be performed in a transaction using the project’s standard locking, upsert, or conflict-handling pattern so that concurrent requests cannot create duplicate active business keys.
+
+Implementations **MUST NOT** work around this rule by mutating the business key, appending random suffixes, generating a new business identifier, bypassing validation, disabling constraints, or physically deleting historical data unless the domain explicitly requires that behavior.
+
+Tests for create/upsert behavior on soft-deletable entities **MUST** include the case where a soft-deleted row with the same business key already exists and the expected result is that the requested data becomes active/effective rather than receiving a duplicate-exists error.
+
 ---
 
 ## 3. Directory Layout Constraints
