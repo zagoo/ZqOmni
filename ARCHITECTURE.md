@@ -55,7 +55,23 @@ This project is built as a highly cohesive, loosely coupled Single Page Applicat
 - Leverage **VueUse** composables for all reactive window/element handling, debouncing, and v-model bindings.
 - Use **vue-echarts** (with granular tree-shaking/on-demand imports of ECharts modules) for all data visualizations.
 
-### 2.8 Soft-Deleted Business-Key Recreation Rule
+### 2.8 Database-Level Pagination and Indexing Rule
+All APIs that support paginated queries **MUST implement pagination at the database layer**, not by retrieving all rows into application memory and slicing them. Pagination logic should calculate total row counts and apply SQL `LIMIT` and `OFFSET` (or equivalent) clauses directly in the database query.
+
+For tables involved in paginated queries, **appropriate indexes MUST be created** to optimize query performance. Indexing strategies can include:
+
+- Composite indexes on columns used for filtering, sorting, and joining.
+- Inclusion of non-key columns using `INCLUDE` clauses (or database-specific equivalent) to cover frequently selected columns and reduce lookups.
+- Other database-supported optimizations such as partial indexes, filtered indexes, or clustered indexes when appropriate.
+
+Code generators and AI agents **MUST ensure** that:
+
+1. Pagination is expressed in the SQL query or ORM equivalent, not in-memory post-processing.
+2. Indexes are recommended or created to support the paginated access patterns.
+3. Total row count is retrieved efficiently, e.g., via a `COUNT(*)` query with the same filter conditions.
+4. Queries remain performant and scalable as table size grows, avoiding full table scans where possible.
+
+### 2.9 Soft-Deleted Business-Key Recreation Rule
 When implementing any create/upsert flow for an entity that supports soft deletion, the code **MUST NOT** reject the request with a simple “already exists” / duplicate-business-key error solely because a soft-deleted row exists with the same business key.
 
 A **business key** means a deterministic domain identifier supplied or derived from business data, not an auto-generated random primary key, UUID, database sequence, or surrogate ID.
