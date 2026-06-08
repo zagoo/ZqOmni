@@ -71,7 +71,21 @@ Code generators and AI agents **MUST ensure** that:
 3. Total row count is retrieved efficiently, e.g., via a `COUNT(*)` query with the same filter conditions.
 4. Queries remain performant and scalable as table size grows, avoiding full table scans where possible.
 
-### 2.9 Soft-Deleted Business-Key Recreation Rule
+### 2.9 Aggregation and Computation at the Database Layer Rule
+
+All operations involving aggregation, summarization, or computation over database tables **MUST be performed within the database engine** itself, using SQL constructs (e.g., `SUM`, `COUNT`, `AVG`, `GROUP BY`, `HAVING`, `WINDOW FUNCTIONS`) or equivalent database-supported functions.
+
+**Strict prohibitions and requirements:**
+
+1. **No in-memory aggregation:** Do **not** load full tables or large datasets into application memory to compute totals, averages, counts, or other aggregates.
+2. **Leverage database optimization:** Use database indexes, partitioning, materialized views, or query hints to maximize performance for aggregation queries.
+3. **Handle large datasets efficiently:** Ensure queries scale with table size and leverage database-level filtering, joining, and aggregation to minimize memory usage and network transfer.
+4. **Preserve data integrity:** Aggregation queries must respect constraints, filtering, and business logic defined at the database layer.
+5. **Transaction consistency:** Aggregations that require consistency should be executed within proper transactional context or use snapshot/isolation levels supported by the database.
+
+The AI coding agent **MUST** follow this rule for any code generation involving aggregated computations, without exception.
+
+### 3.0 Soft-Deleted Business-Key Recreation Rule
 When implementing any create/upsert flow for an entity that supports soft deletion, the code **MUST NOT** reject the request with a simple “already exists” / duplicate-business-key error solely because a soft-deleted row exists with the same business key.
 
 A **business key** means a deterministic domain identifier supplied or derived from business data, not an auto-generated random primary key, UUID, database sequence, or surrogate ID.
