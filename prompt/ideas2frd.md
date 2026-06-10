@@ -9,9 +9,11 @@ Instructions:
      b. Correct missing or inaccurate features in the proposed module plan.
      c. Validate internal logic to ensure conceptual consistency throughout and eliminate logical contradictions or conflicts between business processes and functions.
 
-2. Simplicity Constraint
-   - Exercise extreme restraint to maintain platform-wide simplicity. Be extremely cautious about adding new features or expanding any existing feature's scope.
+2. Constraint
+   - Exercise extreme restraint to ensure the convergence of the entire platform's functionality. Be extremely cautious about adding new features or expanding any existing feature's scope.
+   - Avoid getting into technical details such as interface specifications or system-level constraints; instead, focus on business concepts, business processes, and detailed functional requirements.
 
 3. Output Requirements
-   - Produce a concise, clear, hierarchically structured, and modular FRD.
+   - Produce a detailed, clear, hierarchically structured, and modular FRD.
+   - Downloadable markdown files.
 ```
