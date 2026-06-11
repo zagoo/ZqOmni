@@ -8,6 +8,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import NavItem from '@/components/NavItem.vue'
 import ToastHost from '@/components/ToastHost.vue'
 import ToolbarIconButton from '@/components/ToolbarIconButton.vue'
+import logoIcon from '@/assets/logo_icon.svg'
 import { useToast } from '@/composables/useToast'
 import { STUB_MODULES } from '@/router/modules/stubs'
 import { useAuthStore } from '@/store/auth'
@@ -108,7 +109,7 @@ async function signOut() {
     <template #nav-header>
       <div class="workspace-block">
         <button class="workspace-chip" type="button" @click="tenantMenuOpen = !tenantMenuOpen">
-          <span class="workspace-logo">Z</span>
+          <img class="workspace-logo" :src="logoIcon" alt="ZqOmni logo" />
           <span class="workspace-meta">
             <span class="workspace-name">ZqOmni</span>
             <span class="workspace-tenant">{{ activeTenantName }}</span>
@@ -178,7 +179,7 @@ async function signOut() {
       />
       <NavItem icon="settings" label="Settings" to="/account/session" />
       <button v-if="auth.user" class="user-chip" type="button" @click="router.push('/account/session')">
-        <span class="user-avatar">{{ auth.user.display_name.slice(0, 1).toUpperCase() }}</span>
+        <img class="user-avatar" :src="logoIcon" alt="ZqOmni logo" />
         <span class="user-meta">
           <span class="user-name">{{ auth.user.display_name }}</span>
           <span class="user-email">{{ auth.user.email }}</span>
@@ -241,15 +242,8 @@ async function signOut() {
 .workspace-logo {
   width: 24px;
   height: 24px;
-  border-radius: var(--rounded-sm);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: 600;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex: none;
+  display: block;
 }
 .workspace-meta {
   flex: 1;
@@ -334,15 +328,8 @@ async function signOut() {
 .user-avatar {
   width: 26px;
   height: 26px;
-  border-radius: var(--rounded-full);
-  background: var(--color-tint-lavender);
-  color: var(--color-brand-purple-800);
-  font-weight: 600;
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex: none;
+  display: block;
 }
 .user-meta {
   flex: 1;
