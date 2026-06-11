@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /** M01 UI page 1 — Sign-in email step, route /login (FDD §2.1.2). */
 import { useRouter } from 'vue-router'
+import logoIcon from '@/assets/logo_icon.svg'
 import { useLoginFlow } from '@/views/auth/hooks/useLoginFlow'
 
 const router = useRouter()
@@ -14,16 +15,18 @@ async function submit() {
 <template>
   <div class="login-hero">
     <div class="login-card">
-      <span class="login-logo">Z</span>
-      <h1 class="login-title">Sign in to ZqOmni</h1>
+      <div class="login-brand">
+        <img class="login-logo" :src="logoIcon" alt="ZqOmni logo" />
+        <h1 class="login-title">ZqOmni</h1>
+      </div>
       <p class="login-subtitle">
         Physical AI Data &amp; Compute Infrastructure Platform
       </p>
       <form class="login-form" @submit.prevent="submit">
         <div class="field">
-          <label class="field-label" for="email">Work email</label>
           <input
             id="email"
+            aria-label="Email"
             v-model="flow.email.value"
             class="text-input"
             type="email"
@@ -73,18 +76,17 @@ async function submit() {
   display: flex;
   flex-direction: column;
 }
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
 .login-logo {
   width: 40px;
   height: 40px;
-  border-radius: var(--rounded-md);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: 20px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--space-lg);
+  flex: none;
+  display: block;
 }
 .login-title {
   font-size: 28px;
