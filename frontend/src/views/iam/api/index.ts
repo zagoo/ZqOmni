@@ -1,0 +1,38 @@
+/** M03 module API facade — re-exports only the generated services and types
+ * this module consumes (ARCHITECTURE §4.1). */
+export {
+  m01AdminRevokeUserSessions,
+  m03CreateAccessReview,
+  m03CreateRoleBinding,
+  m03CreateTenantRole,
+  m03DeactivateUser,
+  m03DeleteRole,
+  m03DeleteRoleBinding,
+  m03EffectivePermissions,
+  m03GetAccessReview,
+  m03GetRole,
+  m03GetUser,
+  m03ListAccessReviewEntries,
+  m03ListAccessReviews,
+  m03ListPermissions,
+  m03ListPlatformRoles,
+  m03ListRoleBindings,
+  m03ListTenantRoles,
+  m03ListUsers,
+  m03PreregisterUser,
+  m03QueryAdminAuditEvents,
+  m03QueryTenantAuditEvents,
+  m03ReactivateUser,
+  m03UpdateRole,
+  m03UpdateUser,
+} from '@/api/generated/sdk.gen'
+export type {
+  AccessReviewEntryOut,
+  AccessReviewOut,
+  AuditEventOut,
+  EffectivePermissionsResponse,
+  PermissionOut,
+  RoleBindingOut,
+  RoleOut,
+  UserOut,
+} from '@/api/generated/types.gen'
