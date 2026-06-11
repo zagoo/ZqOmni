@@ -57,10 +57,17 @@ async function submit() {
 </template>
 
 <style scoped>
-/* Deep navy hero band with centered card (DESIGN.md signature). */
+/* Robot-fleet hero image over the brand navy. The image must stay untinted
+   (no overlay/filter — the robots are to remain pixel-identical), so blending
+   happens in the base color only: the image's own edge tone (#7985a2) fused
+   into the brand navy, which lands on the image's corner color (~#384661). */
 .login-hero {
   min-height: 100vh;
-  background: var(--color-brand-navy);
+  background-color: color-mix(in srgb, var(--color-brand-navy) 60%, #7985a2);
+  background-image: url('../../assets/bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,12 +76,25 @@ async function submit() {
 .login-card {
   width: min(420px, 100%);
   background: var(--color-canvas);
-  border: 1px solid var(--color-hairline);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: var(--rounded-lg);
-  box-shadow: var(--shadow-mockup);
+  /* Edge depth against the bright hero: light-catching rim on the top edge,
+     tight contact shadow, then deep navy-toned ambient falloff. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(10, 21, 48, 0.16),
+    0 12px 28px -8px rgba(10, 21, 48, 0.28),
+    0 32px 64px -16px rgba(10, 21, 48, 0.34);
   padding: var(--space-xxl);
   display: flex;
   flex-direction: column;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .login-card {
+    background: rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+  }
 }
 .login-brand {
   display: flex;
