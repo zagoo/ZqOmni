@@ -20,17 +20,21 @@ services:
 
   mailpit:
     image: axllent/mailpit:latest
+    profiles:
+      - dev
     ports:
       - "8025:8025" # web UI
       - "1025:1025" # SMTP
 
   backend:
     build: ./backend
+    env_file:
+      - .env
     environment:
       ZQ_DATABASE_URL: postgresql+asyncpg://zqomni:zqomni@db:5432/zqomni
-      ZQ_SMTP_HOST: mailpit
-      ZQ_SMTP_PORT: "1025"
-      ZQ_ENVIRONMENT: dev
+      ZQ_SMTP_HOST: ${ZQ_SMTP_HOST:-mailpit}
+      ZQ_SMTP_PORT: ${ZQ_SMTP_PORT:-1025}
+      ZQ_ENVIRONMENT: ${ZQ_ENVIRONMENT:-dev}
       ZQ_INITIAL_ADMIN_EMAIL: ${ZQ_INITIAL_ADMIN_EMAIL:-admin@zqomni.dev}
     ports:
       - "8000:8000"
@@ -39,8 +43,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      mailpit:
-        condition: service_started
+      # mailpit:
+      #  condition: service_started
 
   frontend:
     build: ./frontend
