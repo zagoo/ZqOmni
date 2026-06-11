@@ -1,0 +1,59 @@
+# Single-command local stack (ARCHITECTURE §5): PostgreSQL + FastAPI
+# hot-reload + Vue dev server, plus Mailpit as the dev SMTP relay so M01
+# login codes are readable at http://localhost:8025 (codes are never logged).
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: zqomni
+      POSTGRES_PASSWORD: zqomni
+      POSTGRES_DB: zqomni
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zqomni"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP
+
+  backend:
+    build: ./backend
+    environment:
+      ZQ_DATABASE_URL: postgresql+asyncpg://zqomni:zqomni@db:5432/zqomni
+      ZQ_SMTP_HOST: mailpit
+      ZQ_SMTP_PORT: "1025"
+      ZQ_ENVIRONMENT: dev
+      ZQ_INITIAL_ADMIN_EMAIL: ${ZQ_INITIAL_ADMIN_EMAIL:-admin@zqomni.dev}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/srv/backend
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_PROXY_TARGET: http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/srv/frontend
+      - frontend_node_modules:/srv/frontend/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  frontend_node_modules:
