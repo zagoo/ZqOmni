@@ -27,3 +27,10 @@ dist/
 
 # AI Chat local image store (created at runtime)
 var/
+
+# all private prompt
+prompt/
+ARCHITECTURE.md
+CLAUDE.md
+DESIGN.md
+FDD.md
