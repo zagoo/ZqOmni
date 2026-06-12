@@ -3,6 +3,7 @@
  * (TA manage; RD read). Member upsert assigns persona templates (M02-10). */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import CopyableId from '@/components/CopyableId.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/store/auth'
@@ -127,6 +128,7 @@ async function archiveProject() {
         <div>
           <h1 class="text-display">{{ project.display_name }}</h1>
           <p class="text-caption">{{ project.name }} · owner {{ project.owner_user_id }}</p>
+          <CopyableId class="header-id" label="Project ID" :value="project.project_id" />
         </div>
         <button
           v-if="canManage && project.status === 'active'"
@@ -230,6 +232,9 @@ async function archiveProject() {
 </template>
 
 <style scoped>
+.header-id {
+  margin-top: var(--space-xs);
+}
 .description {
   margin-bottom: var(--space-xl);
   color: var(--color-charcoal);

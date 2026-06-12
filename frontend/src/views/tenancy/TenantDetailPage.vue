@@ -3,6 +3,7 @@
  * bindings · Projects tabs, /admin/tenants/{tenant_id} (PA). */
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import CopyableId from '@/components/CopyableId.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
@@ -207,6 +208,7 @@ async function release(bindingId: string) {
       <div>
         <h1 class="text-display">{{ tenant.display_name }}</h1>
         <p class="text-caption">{{ tenant.name }} · {{ tenant.namespace_ref }}</p>
+        <CopyableId class="header-id" label="Tenant ID" :value="tenant.tenant_id" />
       </div>
       <SegmentedControl v-model="tab" :options="tabs" />
     </div>
@@ -395,6 +397,9 @@ async function release(bindingId: string) {
 </template>
 
 <style scoped>
+.header-id {
+  margin-top: var(--space-xs);
+}
 .profile-card,
 .lifecycle-card {
   margin-bottom: var(--space-lg);
