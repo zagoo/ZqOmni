@@ -1,5 +1,6 @@
 """FastAPI entrypoint: middleware, error envelope handlers, router mounts,
 lifespan (bootstrap + sweepers). Exposes /openapi.json as the frontend SSOT."""
+
 import logging
 import uuid
 from contextlib import asynccontextmanager
@@ -29,7 +30,9 @@ from app.schemas.response import ApiResponse, ErrorData
 from app.services.bootstrap import ensure_initial_admin
 from app.services.sweepers import start_sweepers, stop_sweepers
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
+)
 
 
 @asynccontextmanager
@@ -51,6 +54,7 @@ if settings.environment == "dev":
     # Vite dev server proxies /api, but allow direct calls too.
     app.add_middleware(
         CORSMiddleware,
+        https_only=settings.session_cookie_secure,
         allow_origins=["http://localhost:5173"],
         allow_credentials=True,
         allow_methods=["*"],
@@ -60,7 +64,13 @@ if settings.environment == "dev":
 
 
 def _error_response(
-    *, http_status: int, code: int, message: str, error_code: str, details: list, headers: dict
+    *,
+    http_status: int,
+    code: int,
+    message: str,
+    error_code: str,
+    details: list,
+    headers: dict,
 ) -> JSONResponse:
     trace_id = uuid.uuid4().hex
     envelope = ApiResponse[ErrorData](
@@ -69,7 +79,9 @@ def _error_response(
         data=ErrorData(error_code=error_code, details=details, trace_id=trace_id),
     )
     return JSONResponse(
-        status_code=http_status, content=envelope.model_dump(mode="json"), headers=headers
+        status_code=http_status,
+        content=envelope.model_dump(mode="json"),
+        headers=headers,
     )
 
 
@@ -86,7 +98,9 @@ async def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+async def validation_error_handler(
+    _: Request, exc: RequestValidationError
+) -> JSONResponse:
     http_status, code = ERROR_REGISTRY["E_VALIDATION"]
     details = [
         {"loc": [str(p) for p in err.get("loc", [])], "msg": err.get("msg", "")}

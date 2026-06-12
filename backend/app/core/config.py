@@ -3,6 +3,7 @@
 Every deployment-variable value flows through this module; business code
 never reads .env directly.
 """
+
 from functools import lru_cache
 
 from pydantic import Field
@@ -12,13 +13,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="ZQ_", extra="ignore")
 
+    session_cookie_secure: bool = True
+
     app_name: str = "ZqOmni Physical AI Platform"
     environment: str = "dev"  # dev | test | prod
 
     # --- Database ---
-    database_url: str = (
-        "postgresql+asyncpg://zqomni:zqomni@localhost:5432/zqomni"
-    )
+    database_url: str = "postgresql+asyncpg://zqomni:zqomni@localhost:5432/zqomni"
     db_echo: bool = False
 
     # --- Security (FDD §2.1; ARCHITECTURE §2.6) ---
@@ -41,7 +42,7 @@ class Settings(BaseSettings):
 
     # --- M01 login-code policy (FDD §2.1.2, normative) ---
     login_code_ttl_s: int = 600
-    login_code_max_attempts: int = 5
+    login_code_max_attempts: int = 10
     resend_cooldown_s: int = 60
     throttle_ip_per_hour: int = 10
     throttle_email_per_15m: int = 3
