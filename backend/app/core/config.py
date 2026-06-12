@@ -13,8 +13,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="ZQ_", extra="ignore")
 
-    session_cookie_secure: bool = True
-
     app_name: str = "ZqOmni Physical AI Platform"
     environment: str = "dev"  # dev | test | prod
 

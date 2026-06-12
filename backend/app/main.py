@@ -54,7 +54,6 @@ if settings.environment == "dev":
     # Vite dev server proxies /api, but allow direct calls too.
     app.add_middleware(
         CORSMiddleware,
-        https_only=settings.session_cookie_secure,
         allow_origins=["http://localhost:5173"],
         allow_credentials=True,
         allow_methods=["*"],
