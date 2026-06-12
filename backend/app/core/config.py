@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://zqomni:zqomni@localhost:5432/zqomni"
     db_echo: bool = False
 
-    session_cookie_secure: Optional[bool] = None
+    session_cookie_secure: bool | None = None
 
     # --- Security (FDD §2.1; ARCHITECTURE §2.6) ---
     # Pepper for HMAC-SHA-256 hashing of login codes (FDD: held outside the DB).
