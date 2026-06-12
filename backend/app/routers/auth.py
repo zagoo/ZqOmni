@@ -1,5 +1,6 @@
 """M01 — Platform Login & Session Management (FDD §2.1.3, endpoints M01-1..7
 plus the ARCHITECTURE §2.6 silent-refresh endpoint)."""
+
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -44,7 +45,8 @@ from app.schemas.auth import (
     TenantMembershipInfo,
 )
 from app.schemas.response import ApiResponse
-from app.services import authz, login as login_service
+from app.services import authz
+from app.services import login as login_service
 from app.services.audit import emit_audit
 from app.services.catalog import UI_CAPABILITY_PROBE_KEYS
 from app.services.mailer import send_login_code_safe
@@ -61,12 +63,18 @@ def _client_ip(request: Request) -> str:
 
 def _set_session_cookie(response: Response, token: str) -> None:
     settings = get_settings()
+
+    if settings.session_cookie_secure is not None:
+        cookie_secure = settings.session_cookie_secure
+    else:
+        cookie_secure = settings.environment == "prod"
+
     response.set_cookie(
         SESSION_COOKIE,
         token,
         max_age=settings.session_absolute_ttl_s,
         httponly=True,
-        secure=settings.environment == "prod",
+        secure=cookie_secure,
         samesite="lax",
         path="/api/v1/auth",
     )
@@ -85,11 +93,15 @@ async def request_login_code(
 ) -> ApiResponse[LoginCodeAccepted]:
     """Anonymous. Always 202 with an identical body (anti-enumeration)."""
     login_service.enforce_ip_throttle(_client_ip(request))
-    code = await login_service.issue_login_code(db, email=body.email, client_ip=_client_ip(request))
+    code = await login_service.issue_login_code(
+        db, email=body.email, client_ip=_client_ip(request)
+    )
     if code is not None:
         # Post-commit delivery (outbox->SVC-14 equivalent); failures only logged.
         await send_login_code_safe(body.email, code)
-    return ApiResponse(data=LoginCodeAccepted(resend_available_in_s=get_settings().resend_cooldown_s))
+    return ApiResponse(
+        data=LoginCodeAccepted(resend_available_in_s=get_settings().resend_cooldown_s)
+    )
 
 
 @router.post(
@@ -110,7 +122,8 @@ async def create_session(
         db,
         email=body.email,
         code=body.code,
-        user_agent=(body.client.user_agent if body.client else None) or request.headers.get("user-agent"),
+        user_agent=(body.client.user_agent if body.client else None)
+        or request.headers.get("user-agent"),
         device_label=body.client.device_label if body.client else None,
     )
     access_token, access_expires_at = issue_access_token(
@@ -150,22 +163,30 @@ async def refresh_access_token(
     """Silent-refresh endpoint (ARCHITECTURE §2.6): exchanges the long-lived
     opaque session token (httpOnly cookie) for a fresh short-lived access JWT.
     Applies the M01-7 introspection rules: status + both expiries, sliding idle."""
-    token = (body.session_token if body else None) or request.cookies.get(SESSION_COOKIE)
+    token = (body.session_token if body else None) or request.cookies.get(
+        SESSION_COOKIE
+    )
     if not token:
         raise DomainError("E_UNAUTHENTICATED", "No session credential present.")
     session = (
         await db.execute(
-            select(AuthSession).where(AuthSession.token_hash == hash_session_token(token))
+            select(AuthSession).where(
+                AuthSession.token_hash == hash_session_token(token)
+            )
         )
     ).scalar_one_or_none()
     now = datetime.now(timezone.utc)
     if session is None or session.status != "active":
-        raise DomainError("E_UNAUTHENTICATED", "Your session has expired. Sign in again.")
+        raise DomainError(
+            "E_UNAUTHENTICATED", "Your session has expired. Sign in again."
+        )
     if session.absolute_expires_at <= now or session.idle_expires_at <= now:
         session.status = "expired"
         await db.commit()
         purge_session_cache(session.session_id)
-        raise DomainError("E_UNAUTHENTICATED", "Your session has expired. Sign in again.")
+        raise DomainError(
+            "E_UNAUTHENTICATED", "Your session has expired. Sign in again."
+        )
 
     settings = get_settings()
     session.idle_expires_at = now + timedelta(seconds=settings.session_idle_ttl_s)
@@ -203,26 +224,35 @@ async def current_session(
     session = await db.get(AuthSession, ctx.session_id)
     user = await db.get(User, ctx.user_id)
     if session is None or user is None:
-        raise DomainError("E_UNAUTHENTICATED", "Your session has expired. Sign in again.")
+        raise DomainError(
+            "E_UNAUTHENTICATED", "Your session has expired. Sign in again."
+        )
 
     tenant_ids = await login_service.assigned_tenant_ids(db, user.user_id)
     tenants: list[TenantMembershipInfo] = []
     if tenant_ids:
         tenant_rows = (
-            (await db.execute(select(Tenant).where(Tenant.tenant_id.in_(tenant_ids)))).scalars().all()
+            (await db.execute(select(Tenant).where(Tenant.tenant_id.in_(tenant_ids))))
+            .scalars()
+            .all()
         )
         binding_rows = (
             await db.execute(
                 select(RoleBinding, Role.role_id)
                 .join(Role, Role.role_id == RoleBinding.role_id)
-                .where(RoleBinding.user_id == user.user_id, RoleBinding.deleted_at.is_(None))
+                .where(
+                    RoleBinding.user_id == user.user_id,
+                    RoleBinding.deleted_at.is_(None),
+                )
             )
         ).all()
         membership_rows = (
             await db.execute(
                 select(ProjectMember, Project)
                 .join(Project, Project.project_id == ProjectMember.project_id)
-                .where(ProjectMember.user_id == user.user_id, Project.status == "active")
+                .where(
+                    ProjectMember.user_id == user.user_id, Project.status == "active"
+                )
             )
         ).all()
         for tenant in sorted(tenant_rows, key=lambda t: t.name):
@@ -230,7 +260,10 @@ async def current_session(
             for binding, role_id in binding_rows:
                 if binding.scope_type == "platform":
                     roles.add(role_id)
-                elif binding.scope_type == "tenant" and binding.scope_id == tenant.tenant_id:
+                elif (
+                    binding.scope_type == "tenant"
+                    and binding.scope_id == tenant.tenant_id
+                ):
                     roles.add(role_id)
             projects: list[ProjectMembershipInfo] = []
             for member, project in membership_rows:
@@ -399,14 +432,22 @@ async def admin_revoke_user_sessions(
     if user is None:
         raise not_found("User not found.")
     sessions = (
-        await db.execute(
-            select(AuthSession.session_id).where(
-                AuthSession.user_id == user_id, AuthSession.status == "active"
+        (
+            await db.execute(
+                select(AuthSession.session_id).where(
+                    AuthSession.user_id == user_id, AuthSession.status == "active"
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     count = await login_service.revoke_all_sessions(
-        db, user_id=user_id, reason="admin_revoke", actor_type="user", actor_id=ctx.user_id
+        db,
+        user_id=user_id,
+        reason="admin_revoke",
+        actor_type="user",
+        actor_id=ctx.user_id,
     )
     await db.commit()
     for sid in sessions:
@@ -430,7 +471,9 @@ async def introspect(
     Always HTTP 200; `active=false` carries the reason."""
     session = (
         await db.execute(
-            select(AuthSession).where(AuthSession.token_hash == hash_session_token(body.session_token))
+            select(AuthSession).where(
+                AuthSession.token_hash == hash_session_token(body.session_token)
+            )
         )
     ).scalar_one_or_none()
     if session is None:
@@ -438,7 +481,11 @@ async def introspect(
     now = datetime.now(timezone.utc)
     if session.status == "revoked":
         return IntrospectResponse(active=False, reason="revoked")
-    if session.status == "expired" or session.absolute_expires_at <= now or session.idle_expires_at <= now:
+    if (
+        session.status == "expired"
+        or session.absolute_expires_at <= now
+        or session.idle_expires_at <= now
+    ):
         if session.status == "active":
             session.status = "expired"
             await db.commit()
@@ -447,7 +494,10 @@ async def introspect(
     if user is None or user.status != "active":
         return IntrospectResponse(active=False, reason="revoked")
     settings = get_settings()
-    if session.last_seen_at is None or (now - session.last_seen_at).total_seconds() >= 60:
+    if (
+        session.last_seen_at is None
+        or (now - session.last_seen_at).total_seconds() >= 60
+    ):
         session.idle_expires_at = now + timedelta(seconds=settings.session_idle_ttl_s)
         session.last_seen_at = now
         await db.commit()
