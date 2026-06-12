@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ContentCard from '@/components/ContentCard.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/store/auth'
 import {
@@ -146,21 +147,16 @@ async function createProject() {
       </div>
       <div class="field">
         <label class="field-label">Owner</label>
-        <select v-model="form.owner_user_id" class="select-input">
-          <option value="" disabled>Select owner…</option>
-          <option v-for="o in ownerOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
+        <SelectMenu v-model="form.owner_user_id" :options="ownerOptions" placeholder="Select owner…" />
       </div>
       <div class="field">
         <label class="field-label">Default storage binding</label>
-        <select
+        <SelectMenu
           v-model="form.default_storage_binding_id"
-          class="select-input"
+          :options="storageOptions"
+          placeholder="Select storage…"
           :disabled="storageOptions.length === 0"
-        >
-          <option value="" disabled>Select storage…</option>
-          <option v-for="o in storageOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
+        />
         <span v-if="storageOptions.length === 0" class="field-hint">
           Bind storage to the tenant first.
         </span>

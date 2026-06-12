@@ -3,6 +3,7 @@
  * (read-only; catalog transparency per BR-13). */
 import { computed, onMounted } from 'vue'
 import { watchDebounced } from '@vueuse/core'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { usePermissionCatalog } from '@/views/iam/hooks/useIam'
 
 const catalog = usePermissionCatalog()
@@ -10,6 +11,10 @@ onMounted(catalog.load)
 watchDebounced([catalog.q, catalog.domain], catalog.load, { debounce: 300 })
 
 const domains = computed(() => [...new Set(catalog.items.value.map((p) => p.domain))].sort())
+const domainOptions = computed(() => [
+  { value: '', label: 'All domains' },
+  ...domains.value.map((d) => ({ value: d, label: d })),
+])
 </script>
 
 <template>
@@ -22,10 +27,7 @@ const domains = computed(() => [...new Set(catalog.items.value.map((p) => p.doma
 
     <div class="toolbar-row">
       <input v-model="catalog.q.value" class="search-pill filter-search" placeholder="Filter permissions…" />
-      <select v-model="catalog.domain.value" class="select-input domain-select">
-        <option value="">All domains</option>
-        <option v-for="d in domains" :key="d" :value="d">{{ d }}</option>
-      </select>
+      <SelectMenu v-model="catalog.domain.value" class="domain-select" :options="domainOptions" />
     </div>
 
     <div v-if="catalog.loading.value" class="skeleton" style="height: 280px" />

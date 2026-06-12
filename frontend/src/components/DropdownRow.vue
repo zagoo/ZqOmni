@@ -1,5 +1,8 @@
 <script setup lang="ts">
-/** Label above the control, control fills width (Rule 8.11). */
+/** Label above the control, control fills width (Rule 8.11). The control is a
+ * styled SelectMenu (custom listbox) rather than a native <select>. */
+import SelectMenu from '@/components/SelectMenu.vue'
+
 const props = withDefaults(
   defineProps<{
     label: string
@@ -11,31 +14,18 @@ const props = withDefaults(
   { placeholder: 'Select…', disabled: false },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
-
-function onChange(event: Event) {
-  emit('update:modelValue', (event.target as HTMLSelectElement).value)
-}
 </script>
 
 <template>
   <div class="dropdown-row">
     <span class="dropdown-label">{{ props.label }}</span>
-    <select
-      class="select-input"
-      :value="props.modelValue"
+    <SelectMenu
+      :model-value="props.modelValue"
+      :options="props.options"
+      :placeholder="props.placeholder"
       :disabled="props.disabled"
-      @change="onChange"
-    >
-      <option value="" disabled>{{ props.placeholder }}</option>
-      <option
-        v-for="option in props.options"
-        :key="option.value"
-        :value="option.value"
-        :disabled="option.disabled"
-      >
-        {{ option.label }}
-      </option>
-    </select>
+      @update:model-value="emit('update:modelValue', $event)"
+    />
   </div>
 </template>
 

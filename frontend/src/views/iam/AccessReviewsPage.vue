@@ -2,6 +2,7 @@
 /** M03 UI page 7 — Access reviews (RPT-11), /tenant/access-reviews. */
 import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import ModalDialog from '@/components/ModalDialog.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/store/auth'
 import {
@@ -59,6 +60,12 @@ const createOpen = ref(false)
 const form = reactive({
   review_type: 'combined' as 'restricted_datasets' | 'release_artifacts' | 'combined',
 })
+
+const REVIEW_TYPE_OPTIONS = [
+  { value: 'restricted_datasets', label: 'Restricted datasets' },
+  { value: 'release_artifacts', label: 'Release artifacts' },
+  { value: 'combined', label: 'Combined' },
+]
 
 async function createReview() {
   if (!auth.activeTenantId) return
@@ -181,11 +188,7 @@ async function openReview(review: AccessReviewOut) {
     <ModalDialog title="New access review" :open="createOpen" @close="createOpen = false">
       <div class="field">
         <label class="field-label">Review type</label>
-        <select v-model="form.review_type" class="select-input">
-          <option value="restricted_datasets">Restricted datasets</option>
-          <option value="release_artifacts">Release artifacts</option>
-          <option value="combined">Combined</option>
-        </select>
+        <SelectMenu v-model="form.review_type" :options="REVIEW_TYPE_OPTIONS" />
         <span class="field-hint">Period defaults to the last 90 days.</span>
       </div>
       <template #footer>

@@ -4,6 +4,7 @@
  * Keyset pagination via "Load more". */
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/store/auth'
 import {
@@ -31,6 +32,13 @@ const filters = reactive({
   subject_id: '',
   decision: '',
 })
+
+const DECISION_OPTIONS = [
+  { value: '', label: 'all' },
+  { value: 'allow', label: 'allow' },
+  { value: 'deny', label: 'deny' },
+  { value: 'n/a', label: 'n/a' },
+]
 
 function buildQuery(pageToken: string | null) {
   return {
@@ -101,12 +109,7 @@ onMounted(() => load())
         </div>
         <div class="field">
           <label class="field-label">Decision</label>
-          <select v-model="filters.decision" class="select-input">
-            <option value="">all</option>
-            <option value="allow">allow</option>
-            <option value="deny">deny</option>
-            <option value="n/a">n/a</option>
-          </select>
+          <SelectMenu v-model="filters.decision" :options="DECISION_OPTIONS" />
         </div>
       </div>
       <p v-if="windowError" class="field-error">{{ windowError }}</p>

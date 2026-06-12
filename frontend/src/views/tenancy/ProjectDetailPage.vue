@@ -5,6 +5,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import CopyableId from '@/components/CopyableId.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/store/auth'
 import {
@@ -201,10 +202,7 @@ async function archiveProject() {
         <p v-if="editorError" class="banner-error">{{ editorError }}</p>
         <div class="field">
           <label class="field-label">User</label>
-          <select v-model="editor.user_id" class="select-input">
-            <option value="" disabled>Add member…</option>
-            <option v-for="o in userOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-          </select>
+          <SelectMenu v-model="editor.user_id" :options="userOptions" placeholder="Add member…" />
         </div>
         <div class="field">
           <label class="field-label">Persona templates (≥1)</label>
