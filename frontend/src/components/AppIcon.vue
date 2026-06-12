@@ -5,11 +5,12 @@
  * components so call sites stay stable. */
 import { computed, type Component } from 'vue'
 import {
-  Activity, Bell, Box, Building, ChevronDown, ChevronLeft, ChevronRight,
-  CircleCheck, Clipboard, Cpu, Database, Ellipsis, Film, Flag, Folder, Gauge,
-  Info, Key, Layers, Link, List, Lock, LogOut, Map, Maximize, PanelLeft, Plus,
-  RefreshCw, Search, Server, Settings, Share2, Shield, SlidersHorizontal, Tag,
-  Trash2, TriangleAlert, Upload, User, Users, Workflow, X,
+  Activity, Bell, Box, BrainCircuit, Building, Check, ChevronDown, ChevronLeft,
+  ChevronRight, CircleCheck, Clipboard, Cog, Cpu, Database, Ellipsis, Factory,
+  Film, Flag, Folder, Gauge, Info, Key, Layers, Link, List, Lock, LogOut, Map,
+  Maximize, Orbit, PanelLeft, Plus, RefreshCw, Search, Server, Settings, Shapes,
+  Share2, Shield, SlidersHorizontal, Tag, Trash2, TriangleAlert, Upload, User,
+  Users, Workflow, X,
 } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{ name: string; size?: 16 | 20 | 24 }>(), { size: 16 })
@@ -44,10 +45,16 @@ const ICONS: Record<string, Component> = {
   activity: Activity,
   box: Box,
   'check-circle': CircleCheck,
+  check: Check,
   alert: TriangleAlert,
   workflow: Workflow,
   gauge: Gauge,
   layers: Layers,
+  factory: Factory,
+  orbit: Orbit,
+  'brain-circuit': BrainCircuit,
+  cog: Cog,
+  shapes: Shapes,
   refresh: RefreshCw,
   trash: Trash2,
   link: Link,

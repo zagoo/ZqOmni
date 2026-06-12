@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CopyableId from '@/components/CopyableId.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
 import SegmentedControl from '@/components/SegmentedControl.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { describeApiError, useToast } from '@/composables/useToast'
 import {
   m02CreateResourceBinding,
@@ -137,6 +138,12 @@ async function openBindWizard() {
 
 const bindableResources = computed(() =>
   resources.items.value.filter((r) => r.status === 'active'),
+)
+const resourceOptions = computed(() =>
+  bindableResources.value.map((r) => ({
+    value: r.resource_id,
+    label: `${r.name} — ${r.resource_class}/${r.form}`,
+  })),
 )
 const selectedResource = computed<ResourceOut | undefined>(() =>
   resources.items.value.find((r) => r.resource_id === bindForm.resource_id),
@@ -366,12 +373,7 @@ async function release(bindingId: string) {
       <p v-if="bindError" class="banner-error">{{ bindError }}</p>
       <div class="field">
         <label class="field-label">Resource</label>
-        <select v-model="bindForm.resource_id" class="select-input">
-          <option value="" disabled>Select resource…</option>
-          <option v-for="r in bindableResources" :key="r.resource_id" :value="r.resource_id">
-            {{ r.name }} — {{ r.resource_class }}/{{ r.form }}
-          </option>
-        </select>
+        <SelectMenu v-model="bindForm.resource_id" :options="resourceOptions" placeholder="Select resource…" />
       </div>
       <div v-if="selectedResource" class="field">
         <label class="field-label">Binding mode</label>

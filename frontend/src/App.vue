@@ -70,6 +70,15 @@ const stubGroups = computed(() => {
   return [...groups.entries()]
 })
 
+// Distinct, theme-aligned icon per top-level group (no repeated 'box').
+const GROUP_ICONS: Record<string, string> = {
+  'Data Factory': 'factory',
+  'Simulation Factory': 'orbit',
+  ModelOps: 'brain-circuit',
+  Operations: 'cog',
+  'Cross-Cutting': 'shapes',
+}
+
 const expanded = ref<Record<string, boolean>>({ Platform: true })
 function toggleGroup(name: string) {
   expanded.value[name] = !expanded.value[name]
@@ -153,7 +162,7 @@ async function signOut() {
       </template>
       <template v-for="[group, mods] in stubGroups" :key="group">
         <NavItem
-          icon="box"
+          :icon="GROUP_ICONS[group] ?? 'box'"
           :label="group"
           expandable
           :expanded="expanded[group] ?? false"
