@@ -5,9 +5,9 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: zqomni
-      POSTGRES_PASSWORD: zqomni
-      POSTGRES_DB: zqomni
+      POSTGRES_USER: ${POSTGRES_USER:-zqomni}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zqomni}
+      POSTGRES_DB: ${POSTGRES_DB:-zqomni}
     ports:
       - "5432:5432"
     volumes:
@@ -36,6 +36,7 @@ services:
       ZQ_SMTP_PORT: ${ZQ_SMTP_PORT:-1025}
       ZQ_ENVIRONMENT: ${ZQ_ENVIRONMENT:-dev}
       ZQ_INITIAL_ADMIN_EMAIL: ${ZQ_INITIAL_ADMIN_EMAIL:-admin@zqomni.dev}
+      ZQ_INITIAL_ADMIN_DISPLAY_NAME: ${ZQ_INITIAL_ADMIN_DISPLAY_NAME:-Platform Administrator}
     ports:
       - "8000:8000"
     volumes:
