@@ -3,8 +3,10 @@
  * /admin/role-bindings and /tenant/role-bindings. The inspector lives in the
  * right configuration panel (AppShell panel slots). */
 import { onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import DropdownRow from "@/components/DropdownRow.vue";
 import ModalDialog from "@/components/ModalDialog.vue";
+import ScopePicker from "@/components/ScopePicker.vue";
 import SettingsSection from "@/components/SettingsSection.vue";
 import { describeApiError, useToast } from "@/composables/useToast";
 import { useAuthStore } from "@/store/auth";
@@ -26,6 +28,8 @@ import {
 const toast = useToast();
 const auth = useAuthStore();
 const shell = useShellStore();
+const route = useRoute();
+const surface = (route.meta.scope as "platform" | "tenant") ?? "tenant";
 
 const bindings = useBindingListQuery();
 const users = useUserList();
@@ -43,7 +47,7 @@ const createError = ref("");
 const form = reactive({
     user_id: "",
     role_id: "",
-    scope_type: "tenant",
+    scope_type: "tenant" as "platform" | "tenant" | "project",
     scope_id: "",
 });
 
@@ -59,7 +63,10 @@ async function createBinding() {
               ? form.scope_id || auth.activeTenantId
               : form.scope_id;
     if (form.scope_type !== "platform" && !scopeId) {
-        createError.value = "Scope id is required for tenant/project scope.";
+        createError.value =
+            form.scope_type === "tenant"
+                ? "Select a tenant for this scope."
+                : "Select a project for this scope.";
         return;
     }
     try {
@@ -113,14 +120,16 @@ async function removeBinding(b: RoleBindingOut) {
 }
 
 // --- Effective-permission inspector (right panel) ---
-const inspector = reactive({ user_id: "", scope_type: "tenant", scope_id: "" });
+const inspector = reactive({
+    user_id: "",
+    scope_type: "tenant" as "platform" | "tenant" | "project",
+    scope_id: "",
+});
 const inspectorResult = ref<EffectivePermissionsResponse | null>(null);
 const inspecting = ref(false);
 
 function openInspector(userId?: string) {
     if (userId) inspector.user_id = userId;
-    if (!inspector.scope_id && auth.activeTenantId)
-        inspector.scope_id = auth.activeTenantId;
     shell.openPanel();
 }
 
@@ -256,17 +265,11 @@ async function runInspection() {
                             { value: 'project', label: 'project' },
                         ]"
                     />
-                    <div
-                        v-if="inspector.scope_type !== 'platform'"
-                        class="field"
-                    >
-                        <label class="field-label">Scope id</label>
-                        <input
-                            v-model="inspector.scope_id"
-                            class="text-input"
-                            placeholder="tnt-… / prj-…"
-                        />
-                    </div>
+                    <ScopePicker
+                        v-model="inspector.scope_id"
+                        :scope-type="inspector.scope_type"
+                        :surface="surface"
+                    />
                     <button
                         class="btn btn-primary btn-sm"
                         type="button"
@@ -354,21 +357,11 @@ async function runInspection() {
                     { value: 'project', label: 'project' },
                 ]"
             />
-            <div v-if="form.scope_type !== 'platform'" class="field">
-                <label class="field-label">Scope id</label>
-                <input
-                    v-model="form.scope_id"
-                    class="text-input"
-                    :placeholder="
-                        form.scope_type === 'tenant'
-                            ? (auth.activeTenantId ?? 'tnt-…')
-                            : 'prj-…'
-                    "
-                />
-                <span v-if="form.scope_type === 'tenant'" class="field-hint">
-                    Defaults to the active tenant when left empty.
-                </span>
-            </div>
+            <ScopePicker
+                v-model="form.scope_id"
+                :scope-type="form.scope_type"
+                :surface="surface"
+            />
             <template #footer>
                 <button
                     class="btn btn-secondary"
