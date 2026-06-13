@@ -14,6 +14,8 @@ async function submit() {
 
 <template>
   <div class="login-hero">
+    <div class="login-hero-bg login-hero-bg--a" aria-hidden="true"></div>
+    <div class="login-hero-bg login-hero-bg--b" aria-hidden="true"></div>
     <div class="login-card">
       <div class="login-brand">
         <img class="login-logo" :src="logoIcon" alt="ZqOmni logo" />
@@ -57,23 +59,51 @@ async function submit() {
 </template>
 
 <style scoped>
-/* Robot-fleet hero image over the brand navy. The image must stay untinted
-   (no overlay/filter — the robots are to remain pixel-identical), so blending
-   happens in the base color only: the image's own edge tone (#7985a2) fused
-   into the brand navy, which lands on the image's corner color (~#384661). */
+/* Robot-fleet hero: two images cross-fading over the brand navy. The images
+   must stay untinted (no overlay/filter — the robots are to remain
+   pixel-identical), so blending happens in the base color only: the image's
+   own edge tone (#7985a2) fused into the brand navy, which lands on the
+   image's corner color (~#384661). The backgrounds are stacked as layers so
+   the lower one (bg.png) stays fully opaque while the upper one (bg2.png)
+   fades in/out — a true cross-fade with no brightness dip.
+   Cycle (14s): bg.png held 5s → 2s fade → bg2.png held 5s → 2s fade back. */
 .login-hero {
+  position: relative;
+  overflow: hidden;
   min-height: 100vh;
   background-color: color-mix(in srgb, var(--color-brand-navy) 60%, #7985a2);
-  background-image: url('../../assets/bg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-xl);
 }
+.login-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.login-hero-bg--a {
+  background-image: url('../../assets/bg.png');
+}
+.login-hero-bg--b {
+  background-image: url('../../assets/bg2.png');
+  opacity: 0;
+  animation: login-hero-crossfade 14s ease-in-out infinite;
+}
+@keyframes login-hero-crossfade {
+  0%, 35.714% { opacity: 0; }   /* bg.png shown (0–5s) */
+  50%, 85.714% { opacity: 1; }  /* fade to bg2.png (5–7s), hold (7–12s) */
+  100% { opacity: 0; }          /* fade back to bg.png (12–14s) */
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-hero-bg--b { animation: none; }
+}
 .login-card {
+  position: relative;
+  z-index: 1;
   width: min(420px, 100%);
   background: var(--color-canvas);
   border: 1px solid rgba(255, 255, 255, 0.7);
